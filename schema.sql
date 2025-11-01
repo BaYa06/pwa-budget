@@ -1,4 +1,4 @@
--- Optional: run manually if you prefer
+-- Optional bootstrap
 create table if not exists settings (
   id serial primary key,
   initial_balance numeric default 0,

@@ -1,7 +1,6 @@
 const { query } = require('../_lib/db');
-
 module.exports = async (req, res) => {
-  if (req.method === 'GET') {
+  if (req.method === 'GET'){
     const { period } = req.query;
     const { rows } = await query(`
       select b.*, g.name as group_name, g.color as group_color
@@ -12,10 +11,10 @@ module.exports = async (req, res) => {
     `, [period || null]);
     return res.end(JSON.stringify({ ok:true, data: rows }));
   }
-  if (req.method === 'POST' || req.method === 'PUT') {
+  if (req.method === 'POST' || req.method === 'PUT'){
     let body=''; req.on('data', ch=> body+=ch);
     req.on('end', async ()=>{
-      try {
+      try{
         const { groupId, period, limit } = JSON.parse(body||'{}');
         if (!groupId || !period || !(limit>0)) throw new Error('groupId, period, limit required');
         const { rows } = await query(`
@@ -24,18 +23,15 @@ module.exports = async (req, res) => {
           returning *`,
           [groupId, period, limit]);
         if (rows.length) return res.end(JSON.stringify({ ok:true, data: rows[0] }));
-        // if exists, update
         const { rows: r2 } = await query(`update budgets set limit_amount=$3 where group_id=$1 and period=$2 returning *`,
           [groupId, period, limit]);
         res.end(JSON.stringify({ ok:true, data: r2[0] }));
-      } catch(e) {
-        res.statusCode=400; res.end(JSON.stringify({ ok:false, error:e.message }));
-      }
+      }catch(e){ res.statusCode=400; res.end(JSON.stringify({ ok:false, error:e.message })); }
     }); return;
   }
-  if (req.method === 'DELETE') {
+  if (req.method === 'DELETE'){
     const id = parseInt(req.query.id||'0',10);
-    if (!id) { res.statusCode=400; return res.end(JSON.stringify({ ok:false, error:'id required'})); }
+    if (!id){ res.statusCode=400; return res.end(JSON.stringify({ ok:false, error:'id required'})); }
     await query(`delete from budgets where id=$1`, [id]);
     return res.end(JSON.stringify({ ok:true }));
   }

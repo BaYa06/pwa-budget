@@ -1,11 +1,11 @@
 {
   "name": "pwa-budget",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "private": true,
   "type": "commonjs",
   "scripts": {
     "dev": "vercel dev",
-    "build": "echo 'Vercel functions project - no build step'",
+    "build": "echo 'No build step'",
     "start": "vercel dev"
   },
   "dependencies": {
