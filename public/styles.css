@@ -441,6 +441,17 @@ button.ghost {
   border-color: transparent;
 }
 
+/* KPI цвета */
+.kpi .kpi-value{ color:#e2e8f0; }       /* дефолт на всякий случай */
+
+.kpi--current .kpi-value { color: #22c55e; }  /* СЕЙЧАС — зелёный */
+.kpi--spent   .kpi-value { color: #ef4444; }  /* ПОТРАЧЕНО — красный */
+.kpi--planned .kpi-value { color: #ffee00; }  /* ПЛАНИРОВАНО — жёлтый */
+.kpi--remain  .kpi-value { color: #ffffff; }  /* ОСТАНЕТСЯ — белый */
+
+/* (необязательно) если остаток ушёл в минус — подсветить красным */
+.kpi--remain.neg .kpi-value { color:#ef4444; }
+
 @media (min-width: 920px) {
   .kpi-grid {
     grid-template-columns: repeat(4, 1fr);

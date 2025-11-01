@@ -76,10 +76,20 @@ function renderDashboard(data){
   $('#view').innerHTML = kpis + last5;
 }
 
+function kpiCard(label, value, mod) {
+  return `
+    <div class="card kpi ${mod}">
+      <div class="kpi-label">${label}</div>
+      <div class="kpi-value">${value}</div>
+    </div>
+  `;
+}
+
 async function showDashboard(){
   const r = await api('/api/metrics?period='+state.period);
   renderDashboard(r.data);
 }
+
 
 async function showExpenses(){
   const end = todayISO();
