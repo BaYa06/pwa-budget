@@ -257,6 +257,62 @@ main#view {
   transform: translateY(-10%) scale(0.98);
 }
 
+/* Разделы в "Расходы" */
+.section {
+  margin: 14px 0 22px;
+}
+.section-title {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 0 4px; margin-bottom: 8px;
+}
+.section-title h3 {
+  font-size: 14px; font-weight: 600; letter-spacing: .2px;
+}
+.section-title .add-btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: transparent; border: 1px solid rgba(255,255,255,0.08);
+  padding: 6px 10px; border-radius: 10px; color: #cbd5e1; cursor: pointer;
+}
+.section-title .add-btn i { color: var(--wa-green); }
+
+/* Строка элемента с зеленой кнопкой + */
+.item-row {
+  display: grid; grid-template-columns: 1fr auto; gap: 8px;
+  align-items: center; background: rgba(255,255,255,0.02);
+  padding: 10px 12px; border-radius: 12px; margin-bottom: 8px;
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.item-title { font-size: 14px; color: #e2e8f0; }
+.item-meta  { font-size: 12px; color: #94a3b8; margin-top: 2px; }
+.item-amount { font-weight: 700; color: #e2e8f0; }
+
+.item-act {
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.item-act .do-post {
+  display: inline-flex; align-items: center; justify-content: center;
+  width: 36px; height: 36px; border-radius: 10px; border: none; cursor: pointer;
+  background: var(--wa-green); color: #000; font-weight: 800; font-size: 18px;
+  box-shadow: 0 6px 16px rgba(37,211,102,0.35);
+}
+.item-act .do-post:active { transform: translateY(1px) scale(0.98); }
+.item-type-chip {
+  font-size: 11px; padding: 4px 8px; border-radius: 999px;
+  border: 1px solid rgba(255,255,255,0.1); color: #cbd5e1;
+}
+.item-type-chip.sub { border-color:#22c55e55; color:#86efac; }
+.item-type-chip.rec { border-color:#38bdf855; color:#7dd3fc; }
+.item-type-chip.one { border-color:#f59e0b55; color:#fbbf24; }
+.item-act .del-btn{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:36px;height:36px;border-radius:10px;border:none;cursor:pointer;
+  background:#ef4444;color:#fff;font-size:16px;font-weight:700;
+  box-shadow:0 6px 16px rgba(239,68,68,.25);
+  margin-left:6px;
+}
+.item-act .del-btn:active{ transform: translateY(1px) scale(0.98); }
+
+
 /* чуть больше на десктопе */
 @media (min-width: 900px){
   .tabbar{

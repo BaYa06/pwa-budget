@@ -46,8 +46,11 @@ module.exports = async (req, res) => {
   const current_balance = Number(s.initial_balance||0) + Number(inc.v) - Number(exp.v);
 
   const plan = (await query(
-    `select coalesce(sum(amount),0) as v from planned where next_due_date between $1 and $2`,
-    [fmt(today), fmt(end)]
+    `select coalesce(sum(amount),0) as v
+    from planned
+    where next_due_date is not null
+      and next_due_date >= $1`,
+    [fmt(today)]
   )).rows[0];
 
   const planned_to_go = Number(plan.v);
