@@ -1,5 +1,6 @@
 const { Pool } = require('pg');
 let pool;
+
 function getPool() {
   if (!pool) {
     const conn = process.env.DATABASE_URL;
@@ -8,6 +9,7 @@ function getPool() {
   }
   return pool;
 }
+
 async function ensureSchema() {
   const client = await getPool().connect();
   try {
@@ -77,5 +79,9 @@ async function ensureSchema() {
     client.release();
   }
 }
-async function query(sql, params=[]) { return (await getPool().query(sql, params)); }
+
+async function query(sql, params = []) {
+  return getPool().query(sql, params);
+}
+
 module.exports = { getPool, ensureSchema, query };
