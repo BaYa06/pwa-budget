@@ -249,3 +249,29 @@ $$('.modal-tabs button').forEach(btn => btn.addEventListener('click', ()=>{
   try{ await loadSettings(); await loadGroups(); $('.tab-btn[data-tab="dashboard"]').classList.add('active'); showDashboard(); }
   catch(e){ $('#view').innerHTML = '<div class="card"><h3>Ошибка</h3><div class="meta">'+e.message+'</div></div>'; }
 })();
+
+function setActiveTab(tab){
+  document.querySelectorAll('.tab-btn').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.tab === tab);
+  });
+}
+
+// клики по табам
+document.querySelectorAll('.tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const tab = btn.dataset.tab;
+    if (tab === 'dashboard') showDashboard();
+    if (tab === 'expenses')  showExpenses();
+    if (tab === 'planning')  showPlanning();
+    if (tab === 'settings')  showSettings();
+    setActiveTab(tab);
+  });
+});
+
+// FAB по центру (модал добавления)
+document.getElementById('fab-add').addEventListener('click', () => {
+  openAddModal(); // у тебя уже есть логика открытия модалки
+});
+
+// при первой загрузке
+setActiveTab('dashboard');

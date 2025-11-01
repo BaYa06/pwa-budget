@@ -5,7 +5,20 @@ function getPool() {
   if (!pool) {
     const conn = process.env.DATABASE_URL;
     if (!conn) throw new Error("DATABASE_URL is required");
-    pool = new Pool({ connectionString: conn });
+
+    // Явное SSL для удалённых хостов (Neon/Vercel PG)
+    let ssl = false;
+    try {
+      const u = new URL(conn);
+      const host = (u.hostname || '').toLowerCase();
+      const isLocal = host === 'localhost' || host === '127.0.0.1';
+      ssl = isLocal ? false : { rejectUnauthorized: false };
+    } catch (_) {
+      // если URL не распарсился — включим SSL по умолчанию (безопасно для Neon)
+      ssl = { rejectUnauthorized: false };
+    }
+
+    pool = new Pool({ connectionString: conn, ssl });
   }
   return pool;
 }
@@ -73,8 +86,11 @@ async function ensureSchema() {
         last_used_at timestamptz
       );
     `);
+
     const { rows } = await client.query(`select count(*)::int as c from settings;`);
-    if (rows[0].c === 0) await client.query(`insert into settings(initial_balance) values (0);`);
+    if (rows[0].c === 0) {
+      await client.query(`insert into settings(initial_balance) values (0);`);
+    }
   } finally {
     client.release();
   }

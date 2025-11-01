@@ -11,6 +11,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link rel="stylesheet" href="./styles.css">
+  <script src="https://kit.fontawesome.com/4727755156.js" crossorigin="anonymous"></script>
 </head>
 <body>
   <div id="app">
@@ -24,12 +25,39 @@
 
     <main id="view"></main>
 
-    <nav class="tabbar">
-      <button class="tab-btn" data-tab="dashboard">Дашборд</button>
-      <button class="tab-btn" data-tab="expenses">Расходы</button>
-      <button class="fab" id="fab-add">+</button>
-      <button class="tab-btn" data-tab="planning">Планирование</button>
-      <button class="tab-btn" data-tab="settings">Настройка</button>
+    <nav class="tabbar" role="tablist" aria-label="Нижняя навигация">
+      <button class="tab-btn" data-tab="dashboard" aria-label="Дашборд" role="tab">
+        <span class="icon" aria-hidden="true">
+          <i class="fa-solid fa-house"></i>
+        </span>
+        <span class="label">Дашборд</span>
+      </button>
+
+      <button class="tab-btn" data-tab="expenses" aria-label="Расходы" role="tab">
+        <span class="icon" aria-hidden="true">
+          <i class="fa-solid fa-wallet"></i>
+        </span>
+        <span class="label">Расходы</span>
+      </button>
+
+      <!-- Центральная большая кнопка -->
+      <button class="fab" id="fab-add" aria-label="Добавить" role="button">
+        <i class="fa-solid fa-plus"></i>
+      </button>
+
+      <button class="tab-btn" data-tab="planning" aria-label="Планирование" role="tab">
+        <span class="icon" aria-hidden="true">
+          <i class="fa-solid fa-chart-pie"></i>
+        </span>
+        <span class="label">План</span>
+      </button>
+
+      <button class="tab-btn" data-tab="settings" aria-label="Настройка" role="tab">
+        <span class="icon" aria-hidden="true">
+          <i class="fa-solid fa-gear"></i>
+        </span>
+        <span class="label">Настройка</span>
+      </button>
     </nav>
   </div>
 
