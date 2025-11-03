@@ -233,7 +233,6 @@ main#view {
   color: #000;
   border: none;
   box-shadow: 0 8px 24px rgba(37,211,102,0.35), 0 2px 8px rgba(0,0,0,0.35);
-  transform: translateY(-18%);
   transition: transform .12s ease, box-shadow .12s ease;
   display: flex;
   align-items: center;
@@ -243,7 +242,6 @@ main#view {
 }
 
 .fab i{
-  font-size: 28px;
   font-weight: 700;
   line-height: 1;
   color: #000;
@@ -259,7 +257,7 @@ main#view {
 
 /* Разделы в "Расходы" */
 .section {
-  margin: 14px 0 22px;
+  margin: 0 0 22px;
 }
 .section-title {
   display: flex; align-items: center; justify-content: space-between;
@@ -451,6 +449,52 @@ button.ghost {
 
 /* (необязательно) если остаток ушёл в минус — подсветить красным */
 .kpi--remain.neg .kpi-value { color:#ef4444; }
+
+
+#kpi_now {
+  border: 1px solid #10ff31;
+}
+
+#kpi_spent {
+  border: 1px solid #ff0404;
+}
+
+#kpi_plan {
+  border: 1px solid #ffff04;
+}
+
+#kpi_after_plan {
+  border: 1px solid #dd04ff;
+}
+
+#fab-add {
+    width: 50px;
+    height: 50px;
+    font-size: 20px;
+}
+
+.limit-input {
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #0b1424;
+  color: var(--text);
+  outline: none;
+  width: 100px;
+}
+
+.group-input {
+  padding: 12px 12px;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+  background: #0b1424;
+  color: var(--text);
+  outline: none;
+}
+
+.col {
+  width: 150px;
+}
 
 @media (min-width: 920px) {
   .kpi-grid {

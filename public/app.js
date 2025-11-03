@@ -53,10 +53,10 @@ function renderDashboard(data){
   const kpi = data.kpi; const last = data.last5 || [];
   const kpis = `
     <div class="grid kpi-grid">
-      <div class="kpi"><div class="label">Денег сейчас</div><div class="val">${money(kpi.current_balance)} KGS</div></div>
-      <div class="kpi"><div class="label">Потратил (${state.period})</div><div class="val">${money(kpi.spent_period)} KGS</div></div>
-      <div class="kpi"><div class="label">Плановые до конца</div><div class="val">${money(kpi.planned_to_go)} KGS</div></div>
-      <div class="kpi"><div class="label">Останется после плановых</div><div class="val">${money(kpi.will_remain)} KGS</div></div>
+      <div class="kpi" id='kpi_now'><div class="label">Денег сейчас</div><div class="val">${money(kpi.current_balance)} KGS</div></div>
+      <div class="kpi" id='kpi_spent'><div class="label">Потратил (${state.period})</div><div class="val">${money(kpi.spent_period)} KGS</div></div>
+      <div class="kpi" id='kpi_plan'><div class="label">Плановые до конца</div><div class="val">${money(kpi.planned_to_go)} KGS</div></div>
+      <div class="kpi" id='kpi_after_plan'><div class="label">Останется после плановых</div><div class="val">${money(kpi.will_remain)} KGS</div></div>
     </div>`;
   const last5 = `
     <div class="card">
@@ -151,17 +151,115 @@ async function showExpenses(){
   $('#view').innerHTML = blockA + blockB;
 }
 
-async function showPlanning(){
-  const r = await api('/api/metrics?period='+state.period);
-  const top = r.data.budgetsTop || [];
-  const cards = top.map(b=>`
-    <div class="kpi">
-      <div class="label">${b.group_name}</div>
-      <div class="val">${money(b.remain_amount)} из ${money(b.limit_amount)}</div>
-    </div>
-  `).join('') || '<div class="card"><div class="meta">Пока нет лимитов. Добавьте в Настройке.</div></div>';
-  $('#view').innerHTML = `<div class="grid kpi-grid">${cards}</div>`;
+// === Planning helpers ===
+function curMonthKey(){
+  const d = new Date(); const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,'0');
+  return `${y}-${m}`;
 }
+function monthRangeISO(){
+  const d = new Date();
+  const start = new Date(d.getFullYear(), d.getMonth(), 1);
+  const end = new Date(d.getFullYear(), d.getMonth()+1, 0);
+  const toISO = x => new Date(x.getTime()-x.getTimezoneOffset()*60000).toISOString().slice(0,10);
+  return { from: toISO(start), to: toISO(end) };
+}
+function monthLabelRu(){
+  const d = new Date();
+  const s = d.toLocaleDateString('ru-RU',{ month:'long', year:'numeric' });
+  return s[0].toUpperCase()+s.slice(1);
+}
+
+async function showPlanning(){
+  try{
+    await loadGroups();
+    const period = curMonthKey();
+    const { from, to } = monthRangeISO();
+    const [budgetsRes, txRes] = await Promise.all([
+      api('/api/budgets?period='+period),
+      api(`/api/transactions?from=${from}&to=${to}&type=expense`)
+    ]);
+    const budgets = budgetsRes.data || [];
+    const txs = txRes.data || [];
+
+    const byGroupSpent = {};
+    txs.forEach(t=>{
+      const gid = t.group_id || 0;
+      byGroupSpent[gid] = (byGroupSpent[gid]||0) + Number(t.amount||0);
+    });
+    const byGroupBudget = {};
+    budgets.forEach(b=>{ byGroupBudget[b.group_id] = Number(b.limit_amount||0); });
+
+    const items = state.groups.map(g=>{
+      const spent = Number(byGroupSpent[g.id]||0);
+      const limit = Number(byGroupBudget[g.id]||0);
+      const remain = limit ? (limit - spent) : 0;
+      const pct = limit>0 ? Math.min(100, Math.round(spent/limit*100)) : 0;
+      const barClass = limit===0 ? '' : (pct<70 ? '' : (pct<100 ? '-warn' : '-danger'));
+      return `
+        <div class="item plan-item">
+          <div class="col">
+            <div class="title">${g.name}</div>
+            <div class="meta">
+              Потрачено: <b>${money(spent)}</b>
+              ${limit>0 ? `&nbsp;•&nbsp; Осталось: <b>${money(Math.max(0, remain))}</b>` : '&nbsp;•&nbsp; Лимит не задан'}
+            </div>
+            <div class="progress ${barClass}" role="meter" aria-valuemin="0" aria-valuemax="100" aria-valuenow="${pct}">
+              <div style="width:${pct}%"></div>
+            </div>
+          </div>
+          <div class="col right">
+            <input class='limit-input' type="number" step="0.01" inputmode="decimal" id="limit-${g.id}" class="limit-input" placeholder="0" value="${limit || ''}">
+            <button class="ghost" onclick="saveBudgetRow(${g.id})" title="Сохранить лимит">✅</button>
+          </div>
+        </div>
+      `;
+    }).join('') || '<div class="meta">Пока нет групп</div>';
+
+    $('#view').innerHTML = `
+      <div class="card">
+        <h3>Лимиты по группам — ${monthLabelRu()}</h3>
+        <div class="list planning-list">${items}</div>
+        <div class="modal-actions">
+          <button class="primary" onclick="saveAllBudgets()">Сохранить все</button>
+        </div>
+      </div>
+    `;
+  }catch(e){
+    $('#view').innerHTML = '<div class="card"><h3>Ошибка</h3><div class="meta">'+e.message+'</div></div>';
+  }
+}
+
+window.saveBudgetRow = async function(groupId){
+  const el = document.getElementById('limit-'+groupId);
+  if (!el) return;
+  const raw = String(el.value||'').trim();
+  const limit = Number(raw);
+  if (!(limit>=0)) return alert('Введите корректный лимит');
+  await api('/api/budgets', { method:'POST', body: JSON.stringify({ groupId, period: curMonthKey(), limit }) });
+  el.classList.add('saved-flash');
+  setTimeout(()=> el.classList.remove('saved-flash'), 500);
+  showPlanning();
+};
+
+window.saveAllBudgets = async function(){
+  const period = curMonthKey();
+  const inputs = Array.from(document.querySelectorAll('.limit-input'));
+  for (const input of inputs){
+    const m = input.id.match(/^limit-(\\d+)$/);
+    if (!m) continue;
+    const groupId = Number(m[1]);
+    const val = String(input.value||'').trim();
+    if (val==='') continue;
+    const limit = Number(val);
+    if (!(limit>=0)) continue;
+    await api('/api/budgets', { method:'POST', body: JSON.stringify({ groupId, period, limit }) });
+  }
+  showPlanning();
+};
+
+
+
 
 async function loadSettingsAndGroups(){ await loadSettings(); await loadGroups(); }
 
@@ -176,27 +274,17 @@ async function showSettings(){
   `).join('') || '<div class="meta">Пока нет групп</div>';
   $('#view').innerHTML = `
     <div class="card">
-      <h3>Баланс и период</h3>
-      <div class="row" style="gap:12px;flex-wrap:wrap">
-        <div class="form-row" style="min-width:200px">
-          <label>Начальный баланс</label>
-          <input id="s-initial" type="number" step="0.01" value="${s.initial_balance||0}">
-        </div>
-        <div class="form-row" style="min-width:200px">
-          <label>Базовая валюта</label>
-          <input id="s-currency" value="${s.currency||'KGS'}">
+      <div class="card">
+        <h3 id='new-group'>Новая группа</h3>
+        <div class="row" style="margin-top:10px">
+          <input class='group-input' id="g-name" placeholder="Название группы">
+          <input class='group-input' id="g-comment" placeholder="Комментарий">
+          <button class="primary" onclick="addGroup()">Добавить</button>
         </div>
       </div>
-      <div class="modal-actions"><button class="primary" onclick="saveSettings()">Сохранить</button></div>
-    </div>
-    <div class="card">
-      <h3>Группы</h3>
+      <div class="card">
+        <h3>Группы</h3>
       <div class="list">${groups}</div>
-      <div class="row" style="margin-top:10px">
-        <input id="g-name" placeholder="Название группы">
-        <input id="g-comment" placeholder="Комментарий">
-        <button class="primary" onclick="addGroup()">Добавить</button>
-      </div>
     </div>`;
 }
 
@@ -337,7 +425,6 @@ async function showExpenses(){
 
   v.innerHTML = `
     <div class="page">
-      <h2 class="page-title">Расходы</h2>
 
       <!-- Будущие расходы -->
       <section class="section">
