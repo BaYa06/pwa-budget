@@ -461,4 +461,19 @@ button.ghost {
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
   }
+
+  .tabbar{
+    margin-bottom: 10px;
+  }
 }
+
+/* iOS: не зумить инпут при фокусе */
+@supports (-webkit-overflow-scrolling: touch) {
+  .modal input,
+  .modal select,
+  .modal textarea {
+    font-size: 16px !important;
+    line-height: 1.25; /* чтобы курсор не «скакал» */
+  }
+}
+
